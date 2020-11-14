@@ -48,7 +48,7 @@ def main():
     global args 
     args = parser.parse_args()
 
-    debug = 1  # 0: normal mode 1: debug mode
+    debug = 0  # 0: normal mode 1: debug mode
 
     # Data loading code
     # args.data: path to the dataset
@@ -162,7 +162,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     for i, (input, target) in enumerate(train_loader):
         data_time.update(time.time() - end)
 
-        target = target.cuda(async=True)
+        target = target.cuda(non_blocking=True)
         input_var = torch.autograd.Variable(input)
         target_var = torch.autograd.Variable(target)
 
@@ -172,7 +172,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
 
-        losses.update(loss.data[0], input.size(0))  # input.size(0): Batch size
+        losses.update(loss.data, input.size(0))  # input.size(0): Batch size
         top1.update(prec1[0], input.size(0))
         top5.update(prec5[0], input.size(0))
 
@@ -209,7 +209,7 @@ def evaluate(test_loader, model, criterion):
 
     end = time.time()
     for i, (input, target) in enumerate(test_loader):
-        target = target.cuda(async=True)
+        target = target.cuda(non_blocking=True)
         input_var = torch.autograd.Variable(input, volatile=True)
         target_var = torch.autograd.Variable(target, volatile=True)
 
@@ -219,7 +219,7 @@ def evaluate(test_loader, model, criterion):
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-        losses.update(loss.data[0], input.size(0))
+        losses.update(loss.data, input.size(0))
         top1.update(prec1[0], input.size(0))
         top5.update(prec5[0], input.size(0))
 
